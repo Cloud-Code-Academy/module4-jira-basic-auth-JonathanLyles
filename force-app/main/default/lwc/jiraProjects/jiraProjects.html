@@ -1,0 +1,28 @@
+<template>
+    <lightning-card title="Jira Projects" icon-name="custom:custom63">
+        <template if:true={error}>
+            <p class="slds-text-color_error">Error: {error.body.message}</p>
+        </template>
+
+        <template if:true={projects}>
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Project Key</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={projects} for:item="project">
+                        <tr key={project.Id}>
+                            <td>{project.Project_Name__c}</td>
+                            <td>{project.Project_Key__c}</td>
+                            <td>{project.Description__c}</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+    </lightning-card>
+</template>

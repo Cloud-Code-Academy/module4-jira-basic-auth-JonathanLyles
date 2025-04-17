@@ -5,6 +5,7 @@ public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts 
 	// Simple constants instead of enum
 	public static final String TYPE_PROJECT = 'PROJECT';
 	public static final String TYPE_ISSUE = 'ISSUE';
+	public static final Integer QUEUEABLE_LIMIT = 50;
 
 	private String calloutType;
 	private Id recordId;
@@ -56,34 +57,60 @@ public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts 
 
 	/**
 	 * Execute the callout based on the callout type
-	 *
-	 * TODO: Implement this method to:
 	 * 1. Check the callout type (TYPE_PROJECT or TYPE_ISSUE)
 	 * 2. Call the appropriate JiraAPIService method
 	 * 3. Update the corresponding Salesforce record with the Jira ID/Key
 	 */
 	public void execute(QueueableContext context) {
-		// Your implementation goes here
+		
+		if(projectWrapper != null && calloutType == 'PROJECT'){
+				//create project and get the Jira Id
+				String jiraProjectId = JiraAPIService.createProject(projectWrapper);
+				//update the salesforce record
+				if(jiraProjectId != null){
+					updateJiraProject(jiraProjectId);
+				}else{
+					System.debug('project not created');
+				}
+		}else if(issueWrapper != null && calloutType == 'ISSUE'){
+				//create issue and get the key
+				System.debug('updating the issue');
+				String jiraIssueKey = JiraAPIService.createIssue(issueWrapper);
+				System.debug('Jira Issue Key: ' + jiraIssueKey);
+				//update the salesforce record		
+				if(jiraIssueKey != null){
+					System.debug('calling updateJiraIssue');
+					updateJiraIssue(jiraIssueKey);
+				}else{
+					
+				}
+			}
 	}
+	
 
 	/**
 	 * Update the Jira Project record with the Jira project Id
-	 *
-	 * TODO: Implement this method to update the Jira_Project__c record
 	 * with the Jira project ID returned from the API
 	 */
 	private void updateJiraProject(String jiraProjectId) {
-		// Your implementation goes here
+		Jira_Project__c project = new Jira_Project__c();
+		project.Id = this.recordId;
+		project.Project_ID__c = jiraProjectId;
+		System.debug(project.Project_ID__c);
+		update project;
 	}
 
 	/**
 	 * Update the Jira Issue record with the Jira issue key
-	 *
-	 * TODO: Implement this method to update the Jira_Issue__c record
 	 * with the Jira issue key returned from the API
 	 * Don't forget to update the Last_Updated__c field with the current time
 	 */
 	private void updateJiraIssue(String jiraIssueKey) {
-		// Your implementation goes here
+		System.debug('inside the beast');
+		Jira_Issue__c issue = new Jira_Issue__c();
+		issue.Id = this.recordId;
+		issue.Issue_Key__c = jiraIssueKey;
+		issue.Last_Updated__c = Datetime.now();
+		update issue;		
 	}
 }

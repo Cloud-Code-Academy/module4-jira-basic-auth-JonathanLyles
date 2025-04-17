@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Active</label>
+    <protected>false</protected>
+    <values>
+        <field>leadAccountId__c</field>
+        <value xsi:type="xsd:string">712020:3863faf7-35b9-466a-a958-b67d229b0dff</value>
+    </values>
+    <values>
+        <field>projectTemplateKey__c</field>
+        <value xsi:type="xsd:string">com.atlassian.jira-core-project-templates:jira-core-simplified-process-control</value>
+    </values>
+</CustomMetadata>
