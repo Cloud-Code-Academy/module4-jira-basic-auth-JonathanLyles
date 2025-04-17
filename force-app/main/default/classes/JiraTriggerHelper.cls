@@ -7,30 +7,35 @@ public with sharing class JiraTriggerHelper {
 	 * @param newProjects List of newly inserted Jira_Project__c records
 	 */
 	public static void processProjectAfterInsert(List<Jira_Project__c> newProjects) {
-		List<Jira_Project__c> projectsToProcess = new List<Jira_Project__c>();
+		List<JiraCalloutQueueable> callouts = new List<JiraCalloutQueueable>();
 
 		// Filter out projects that already have a Jira project ID
 		for (Jira_Project__c project : newProjects) {
 			if (String.isBlank(project.Project_ID__c)) {
-				projectsToProcess.add(project);
+				callouts.add( new JiraCalloutQueueable(
+					project.Id,
+					project.Project_Name__c,
+					project.Project_Key__c,
+					project.Description__c
+				));
 			}
+			System.debug('added');
 		}
-
-		// Simple bulkification by looping through each project
-		for (Jira_Project__c project : projectsToProcess) {
-			// Enqueue the callout
-			JiraCalloutQueueable callout = new JiraCalloutQueueable(
-				project.Id,
-				project.Project_Name__c,
-				project.Project_Key__c,
-				project.Description__c
-			);
-
-			if (!Test.isRunningTest()) {
-				System.enqueueJob(callout);
+	
+		if (!Test.isRunningTest()) {
+			Integer jobsEnqueued = 0;
+			for (JiraCalloutQueueable callout : callouts) {
+				if(jobsEnqueued < JiraCalloutQueueable.QUEUEABLE_LIMIT){
+					System.enqueueJob(callout);
+					jobsEnqueued++;
+				} else {
+					System.debug(LoggingLevel.ERROR, 'Reached Queueable job limit for this transaction.');
+					break;
+				}
 			}
-		}
+		 }
 	}
+
 
 	/**
 	 * Process Jira_Issue__c records after insert
@@ -44,6 +49,36 @@ public with sharing class JiraTriggerHelper {
 	 * 4. Don't enqueue if Test.isRunningTest() is true
 	 */
 	public static void processIssueAfterInsert(List<Jira_Issue__c> newIssues) {
-		// Your implementation goes here
+		List<JiraCalloutQueueable> callouts = new List<JiraCalloutQueueable>();
+		for(Jira_Issue__c newIssue : newIssues){
+			if(isValidIssue(newIssue)){
+				callouts.add( new JiraCalloutQueueable(
+					newIssue.Id,
+					newIssue.Summary__c,
+					newIssue.Description__c,
+					newIssue.Project_Key__c
+				));
+			}else{
+				System.debug(LoggingLevel.ERROR, 'Invalid issue: ' + newIssue);
+			}
+
+			// if (!Test.isRunningTest()) {
+			// 	Integer jobsEnqueued = 0;
+			// 	for (JiraCalloutQueueable callout : callouts) {
+			// 		//if (jobsEnqueued < Limits.getLimitQueueableJobs() - 1) {
+			// 			if (jobsEnqueued < Limits.getLimitQueueableJobs() - 1) {
+			// 			System.enqueueJob(callout);
+			// 			jobsEnqueued++;
+			// 		} else {
+			// 			System.debug(LoggingLevel.ERROR, 'Reached Queueable job limit for this transaction.');
+			// 			break;
+			// 		}
+			// 	}
+			// }
+		}
+	}
+	
+	private static Boolean isValidIssue(Jira_Issue__c issue){
+		return issue.Issue_Key__c == null && issue.Project_Key__c != null;
 	}
 }

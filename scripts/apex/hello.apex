@@ -16,3 +16,6 @@ JiraWrapper.IssueWrapper issueWrapper = new JiraWrapper.IssueWrapper(
 );
 System.debug(JSON.serialize(issueWrapper));
 JiraAPIService.createIssue(issueWrapper);
+
+JiraApiSetting__mdt config = JiraApiSetting__mdt.getInstance('Active');
+System.debug(config);
